@@ -49,6 +49,7 @@ typedef struct enclave_disk_config {
 typedef struct enclave_config {
     void *syscallpage;
     size_t maxsyscalls;
+    size_t max_user_threads;
     void *heap;
     size_t heapsize;
     size_t stacksize;
@@ -66,10 +67,6 @@ typedef struct enclave_config {
     Elf64_auxv_t* auxv;
     void* base; /* Base address of lkl/libc code */
     void *(*ifn)(struct enclave_config *);
-    int tlspresent;
-    size_t tlsbase;
-    Elf64_Phdr tlsphdr; /* must be ignored by HW brach */
-    int fd;
     size_t backoff_factor;
     unsigned backoff_maxpause;
     long sysconf_nproc_conf;
@@ -79,6 +76,10 @@ typedef struct enclave_config {
     void *shm_out_to_enc;
     int mode; /* SGXLKL_HW_MODE or SGXLKL_SIM_MODE */
     void *vvar;
+    int fsgsbase; /* Can we use FSGSBASE instructions within the enclave? */
+#ifndef SGXLKL_HW
+    void (*sim_exit_handler) (int);
+#endif
 } enclave_config_t;
 
 enum SlotState { DONE, WRITTEN };

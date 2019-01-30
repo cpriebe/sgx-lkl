@@ -57,7 +57,7 @@ tools: ${TOOLS_OBJ}
 
 # Generic tool rule (doesn't actually depend on lkl_lib, but on LKL headers)
 ${TOOLS_BUILD}/%: ${TOOLS}/%.c ${HOST_MUSL_CC} ${LKL_LIB} | ${TOOLS_BUILD}
-	${HOST_MUSL_CC} ${MY_CFLAGS} --static -I${LKL_BUILD}/include/ -o $@ $< ${MY_LDFLAGS}
+	${HOST_MUSL_CC} ${SGXLKL_CFLAGS} --static -I${LKL_BUILD}/include/ -o $@ $<
 
 # More headers required by SGX-Musl not exported by LKL, given by a custom tool's output
 ${LKL_SGXMUSL_HEADERS}: ${LKL_BUILD}/include/lkl/%.h: ${TOOLS_BUILD}/lkl_%
@@ -81,7 +81,7 @@ sgx-lkl-musl: ${LIBLKL} ${LKL_SGXMUSL_HEADERS} sgx-lkl-musl-config sgx-lkl $(ENC
 # This way the debug info will be automatically picked up when debugging with gdb. TODO: Fix...
 	@if [ "$(HW_MODE)" = "yes" ]; then objcopy --only-keep-debug $(BUILD_DIR)/libsgxlkl.so $(BUILD_DIR)/sgx-lkl-run.debug; fi
 
-sgx-lkl-sign: sgx-lkl $(ENCLAVE_DEBUG_KEY)
+sgx-lkl-sign: $(BUILD_DIR)/libsgxlkl.so $(ENCLAVE_DEBUG_KEY)
 	@if [ "$(HW_MODE)" = "yes" ]; then $(BUILD_DIR)/sgx-lkl-sign -t $(NUM_TCS) -k $(ENCLAVE_DEBUG_KEY) -f $(BUILD_DIR)/libsgxlkl.so; fi
 
 # compile sgx-lkl sources

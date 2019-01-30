@@ -73,11 +73,19 @@ sudo sysctl -w net.ipv4.ip_forward=1
 ```
 
 If SGX-LKL should be allowed to access the internet or other networks,
-masquerading might be needed:
+masquerading might also be needed:
 
 ```
+# Same as above, can be skipped if run before
+sudo sysctl -w net.ipv4.ip_forward=1
+
 sudo iptables -t nat -A POSTROUTING -s 10.0.1.0/24 ! -d 10.0.1.0/24 -j MASQUERADE
 ```
+
+DNS resolution is configured via `/etc/resolv.conf` as usual, so if this is
+required, ensure that a valid nameserver configuration is in place on the root
+disk image, e.g. by copying the host configuration (see
+`apps/miniroot/Makefile` for an example).
 
 Building SGX-LKL manually
 -------------------------
@@ -121,14 +129,14 @@ multi-stage build support. There is a script `sgx-lkl-docker.sh` to build
 SGX-LKL inside a Docker container independently of the host environment:
 
 ```
-./sgx-lkl-docker.sh build -s   # This builds SGX-LKL in simulation mode
+./sgx-lkl-docker.sh -s build   # This builds SGX-LKL in simulation mode
 ```
 
 After SGX-LKL has been built, it is possible to deploy the container with the
 Java HelloWorld example on the local (or a remote) machine:
 
 ```
-./sgx-lkl-docker.sh deploy-jvm-helloworld -s
+./sgx-lkl-docker.sh -s deploy-app jvm-helloworld
 ```
 
 (Deployment on a remote Docker machine requires `docker-machine` to be set up.)
@@ -136,7 +144,7 @@ Java HelloWorld example on the local (or a remote) machine:
 A list of options can be obtained with:
 
 ```
-./sgx-lkl-docker.sh -h
+./sgx-lkl-docker.sh '-?'
 ```
 
 Running applications with SGX-LKL
@@ -165,6 +173,7 @@ sudo apt-get install curl openjdk-8-jdk
 To build the disk image, run
 
 ```
+cd apps/jvm/helloworld-java 
 make
 ```
 
